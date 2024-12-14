@@ -16,6 +16,7 @@ app.post('/api/initialize-payment', async (req, res) => {
         const { amount, isDeposit } = req.body;
         const tx_ref = `tx-${uuidv4()}`;
 
+        // Create the request payload
         const payload = {
             amount: amount.toString(),
             currency: 'ETB',
@@ -25,19 +26,42 @@ app.post('/api/initialize-payment', async (req, res) => {
             first_name: 'John',
             last_name: 'Lemma',
             email: 'yohanneslemma100@gmail.com',
-            title: isDeposit ? 'Wallet Deposit' : 'Lottery Ticket Purchase',
-            description: isDeposit ? 'Deposit to wallet' : 'Lottery ticket purchase'
+            title: 'Lottery Deposit',
+            description: 'Deposit to lottery wallet'
         };
 
-        const response = await axios.post(
-            CHAPA_URL,
-            payload,
-            { headers: CHAPA_HEADERS }
-        );
+        // Log the request details
+        console.log('Chapa Request:', {
+            url: CHAPA_URL,
+            headers: CHAPA_HEADERS,
+            payload
+        });
 
+        // Make the request to Chapa
+        const response = await axios({
+            method: 'POST',
+            url: CHAPA_URL,
+            headers: {
+                'Authorization': `Bearer ${CHAPA_SECRET_KEY}`,
+                'Content-Type': 'application/json'
+            },
+            data: payload
+        });
+
+        // Log the response
+        console.log('Chapa Response:', response.data);
+
+        // Send back the response
         res.json(response.data);
     } catch (error) {
-        console.error('Payment initialization error:', error.response?.data || error.message);
+        // Log the full error
+        console.error('Payment initialization error:', {
+            message: error.message,
+            response: error.response?.data,
+            stack: error.stack
+        });
+
+        // Send back error details
         res.status(500).json({ 
             error: 'Payment initialization failed',
             details: error.response?.data || error.message
