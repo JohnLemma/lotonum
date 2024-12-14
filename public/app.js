@@ -81,8 +81,7 @@ async function initializePayment(amount) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CHAPA-PK': 'CHAPUBK_TEST-XAOSeQNcSJ1yPu0Vkw0H8oKfAbMFD1g4',
-                'X-CHAPA-ENCRYPTION-KEY': 'ocsCVDYz9jTc0vDsMP5FH1za'
+                'X-CHAPA-PK': 'CHAPUBK_TEST-XAOSeQNcSJ1yPu0Vkw0H8oKfAbMFD1g4'
             },
             body: JSON.stringify({ 
                 amount: Number(amount),
@@ -95,7 +94,7 @@ async function initializePayment(amount) {
         if (data.status === 'success' && data.data.tx_ref) {
             // Store tx_ref before redirect
             localStorage.setItem('pending_tx_ref', data.data.tx_ref);
-            console.log('Stored tx_ref:', data.data.tx_ref); // Debug log
+            console.log('Stored tx_ref:', data.data.tx_ref);
             window.location.href = data.data.checkout_url;
         } else {
             throw new Error(data.message || 'Payment initialization failed');
