@@ -81,12 +81,12 @@ async function initializePayment(amount) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
-                'X-CHAPA-PK': 'CHAPUBK_TEST-XkHvkNBYiQfXbpKnXBRQGCfJ5bJ5jHGz',
-                'X-CHAPA-ENCRYPTION-KEY': 'CHAPA_TEST_ENCRYPT_dGVzdF9rZXk='
+                'X-CHAPA-PK': 'CHAPUBK_TEST-XAOSeQNcSJ1yPu0Vkw0H8oKfAbMFD1g4',
+                'X-CHAPA-ENCRYPTION-KEY': 'ocsCVDYz9jTc0vDsMP5FH1za'
             },
             body: JSON.stringify({ 
                 amount: Number(amount),
-                isDeposit: amount >= 100
+                isDeposit: amount >= 20
             })
         });
         
@@ -112,7 +112,7 @@ async function initializePayment(amount) {
 // Update deposit functionality
 async function handleDeposit() {
     try {
-        await initializePayment(100);
+        await initializePayment(20);
     } catch (error) {
         console.error('Deposit error:', error);
         alert('Deposit failed: ' + (error.message || 'Unknown error'));
