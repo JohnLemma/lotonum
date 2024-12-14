@@ -83,31 +83,37 @@ async function initializePayment(amount) {
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({ 
-                amount,
-                isDeposit: amount >= 100 // To differentiate between ticket purchase and deposit
+                amount: Number(amount),
+                isDeposit: amount >= 100
             })
         });
         
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.details || 'Payment initialization failed');
+        }
+
         const data = await response.json();
-        return data;
+        
+        if (data.status === 'success') {
+            window.location.href = data.data.checkout_url;
+        } else {
+            throw new Error(data.message || 'Payment initialization failed');
+        }
     } catch (error) {
         console.error('Payment error:', error);
+        alert(error.message || 'Payment initialization failed');
         throw error;
     }
 }
 
-// Add deposit functionality
+// Update deposit functionality
 async function handleDeposit() {
-    const depositAmount = 100; // Fixed deposit amount of 100 ETB
     try {
-        const response = await initializePayment(depositAmount);
-        if (response.status === 'success') {
-            // The actual balance update should happen after payment verification
-            window.location.href = response.data.checkout_url;
-        }
+        await initializePayment(100);
     } catch (error) {
         console.error('Deposit error:', error);
-        alert('Deposit failed');
+        alert('Deposit failed: ' + (error.message || 'Unknown error'));
     }
 }
 
