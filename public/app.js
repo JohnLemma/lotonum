@@ -81,6 +81,8 @@ async function initializePayment(amount) {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CHAPA-PK': 'CHAPUBK_TEST-XkHvkNBYiQfXbpKnXBRQGCfJ5bJ5jHGz',
+                'X-CHAPA-ENCRYPTION-KEY': 'CHAPA_TEST_ENCRYPT_dGVzdF9rZXk='
             },
             body: JSON.stringify({ 
                 amount: Number(amount),
