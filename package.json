@@ -1,0 +1,17 @@
+{
+  "name": "telegram-lottery-app",
+  "version": "1.0.0",
+  "description": "Telegram Mini App for Lottery Numbers",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "engines": {
+    "node": ">=18.x"
+  },
+  "author": "Johnlemma <yohanneslemma100@gmail.com>",
+  "license": "MIT"
+}
