@@ -57,11 +57,26 @@ app.get('/api/verify-payment', async (req, res) => {
                 }
             }
         );
-        res.json(response.data);
+
+        if (response.data.status === 'success') {
+            const amount = Number(response.data.data.amount);
+            // Send both status and amount back to client
+            res.json({ 
+                status: 'success',
+                amount: amount
+            });
+        } else {
+            res.json({ status: 'failed' });
+        }
     } catch (error) {
         console.error('Payment verification error:', error);
-        res.status(500).json({ error: 'Payment verification failed' });
+        res.status(500).json({ status: 'failed', error: 'Payment verification failed' });
     }
+});
+
+// Add a success route handler
+app.get('/deposit-success', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // Handle all routes by serving index.html

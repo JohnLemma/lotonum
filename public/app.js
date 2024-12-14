@@ -98,6 +98,8 @@ async function initializePayment(amount) {
         const data = await response.json();
         
         if (data.status === 'success') {
+            // Store tx_ref before redirect
+            localStorage.setItem('pending_tx_ref', data.data.tx_ref);
             window.location.href = data.data.checkout_url;
         } else {
             throw new Error(data.message || 'Payment initialization failed');
@@ -145,3 +147,29 @@ buyButton.addEventListener('click', async () => {
 
 // Add button to container
 document.querySelector('.container').appendChild(buyButton); 
+
+// Add this function to check payment status
+async function checkPaymentStatus(tx_ref) {
+    try {
+        const response = await fetch(`/api/verify-payment?tx_ref=${tx_ref}`);
+        const data = await response.json();
+        
+        if (data.status === 'success') {
+            // Update balance
+            const newBalance = userBalance + Number(data.amount);
+            updateBalance(newBalance);
+            alert('Deposit successful! Your balance has been updated.');
+        }
+    } catch (error) {
+        console.error('Error checking payment:', error);
+    }
+}
+
+// Add this to check payment status when page loads
+window.addEventListener('load', () => {
+    const pendingTxRef = localStorage.getItem('pending_tx_ref');
+    if (pendingTxRef) {
+        checkPaymentStatus(pendingTxRef);
+        localStorage.removeItem('pending_tx_ref');
+    }
+}); 
