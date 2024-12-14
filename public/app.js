@@ -14,6 +14,11 @@ const countdownElement = document.getElementById('countdown');
 // Add countdown variable
 let secondsLeft = 10;
 
+// Add these variables at the top with other declarations
+let userBalance = 0;
+const balanceElement = document.getElementById('userBalance');
+const depositBtn = document.getElementById('depositBtn');
+
 // Function to generate random number between min and max (inclusive)
 function getRandomNumber(min, max) {
     return Math.floor(Math.random() * (max - min + 1)) + min;
@@ -68,3 +73,67 @@ setInterval(updateDisplay, 10000);
 
 // Manual generation when button is clicked
 generateButton.addEventListener('click', updateDisplay); 
+
+// Add payment functionality
+async function initializePayment(amount) {
+    try {
+        const response = await fetch('/api/initialize-payment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ 
+                amount,
+                isDeposit: amount >= 100 // To differentiate between ticket purchase and deposit
+            })
+        });
+        
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error('Payment error:', error);
+        throw error;
+    }
+}
+
+// Add deposit functionality
+async function handleDeposit() {
+    const depositAmount = 100; // Fixed deposit amount of 100 ETB
+    try {
+        const response = await initializePayment(depositAmount);
+        if (response.status === 'success') {
+            // The actual balance update should happen after payment verification
+            window.location.href = response.data.checkout_url;
+        }
+    } catch (error) {
+        console.error('Deposit error:', error);
+        alert('Deposit failed');
+    }
+}
+
+// Update balance display
+function updateBalance(amount) {
+    userBalance = amount;
+    balanceElement.textContent = userBalance;
+}
+
+// Add event listener for deposit button
+depositBtn.addEventListener('click', handleDeposit);
+
+// Update the ticket purchase function
+const buyButton = document.createElement('button');
+buyButton.textContent = 'Buy Ticket (10 ETB)';
+buyButton.className = 'buy-button';
+buyButton.addEventListener('click', async () => {
+    const ticketPrice = 10;
+    if (userBalance >= ticketPrice) {
+        updateBalance(userBalance - ticketPrice);
+        // Generate new number...
+        updateDisplay();
+    } else {
+        alert('Insufficient balance. Please deposit more funds.');
+    }
+});
+
+// Add button to container
+document.querySelector('.container').appendChild(buyButton); 

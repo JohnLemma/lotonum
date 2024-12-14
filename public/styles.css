@@ -40,4 +40,42 @@ button:hover {
     font-size: 1.2em;
     color: var(--tg-theme-hint-color, #999999);
     margin-bottom: 20px;
+}
+
+.buy-button {
+    margin-top: 20px;
+    padding: 12px 24px;
+    font-size: 1.1em;
+    background-color: var(--tg-theme-button-color, #28a745);
+    color: var(--tg-theme-button-text-color, #ffffff);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.3s;
+}
+
+.buy-button:hover {
+    opacity: 0.9;
+}
+
+.balance-container {
+    background-color: var(--tg-theme-secondary-bg-color, #f0f0f0);
+    padding: 15px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.balance {
+    font-size: 1.2em;
+    font-weight: bold;
+    color: var(--tg-theme-text-color, #000000);
+}
+
+.deposit-button {
+    background-color: var(--tg-theme-button-color, #28a745);
+    padding: 8px 16px;
+    font-size: 1em;
 } 
