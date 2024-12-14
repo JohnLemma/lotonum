@@ -22,9 +22,9 @@ app.post('/api/initialize-payment', async (req, res) => {
             tx_ref,
             callback_url: `${req.protocol}://${req.get('host')}/api/verify-payment`,
             return_url: `${req.protocol}://${req.get('host')}/${isDeposit ? 'deposit' : 'ticket'}-success`,
-            first_name: 'Customer',
-            last_name: 'Name',
-            email: 'customer@example.com',
+            first_name: 'John',
+            last_name: 'Lemma',
+            email: 'yohanneslemma100@gmail.com',
             title: isDeposit ? 'Wallet Deposit' : 'Lottery Ticket Purchase',
             description: isDeposit ? 'Deposit to wallet' : 'Lottery ticket purchase'
         };
