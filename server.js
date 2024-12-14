@@ -48,19 +48,24 @@ app.post('/api/initialize-payment', async (req, res) => {
 // Payment verification endpoint
 app.get('/api/verify-payment', async (req, res) => {
     const { tx_ref } = req.query;
+    
+    if (!tx_ref) {
+        return res.status(400).json({ 
+            status: 'failed', 
+            error: 'Transaction reference is required' 
+        });
+    }
+
     try {
         const response = await axios.get(
             `https://api.chapa.co/v1/transaction/verify/${tx_ref}`,
             {
-                headers: {
-                    'Authorization': `Bearer ${CHAPA_SECRET_KEY}`
-                }
+                headers: CHAPA_HEADERS
             }
         );
 
         if (response.data.status === 'success') {
             const amount = Number(response.data.data.amount);
-            // Send both status and amount back to client
             res.json({ 
                 status: 'success',
                 amount: amount
@@ -69,8 +74,12 @@ app.get('/api/verify-payment', async (req, res) => {
             res.json({ status: 'failed' });
         }
     } catch (error) {
-        console.error('Payment verification error:', error);
-        res.status(500).json({ status: 'failed', error: 'Payment verification failed' });
+        console.error('Payment verification error:', error.response?.data || error.message);
+        res.status(500).json({ 
+            status: 'failed', 
+            error: 'Payment verification failed',
+            details: error.response?.data || error.message
+        });
     }
 });
 

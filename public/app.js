@@ -90,16 +90,12 @@ async function initializePayment(amount) {
             })
         });
         
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.details || 'Payment initialization failed');
-        }
-
         const data = await response.json();
         
-        if (data.status === 'success') {
+        if (data.status === 'success' && data.data.tx_ref) {
             // Store tx_ref before redirect
             localStorage.setItem('pending_tx_ref', data.data.tx_ref);
+            console.log('Stored tx_ref:', data.data.tx_ref); // Debug log
             window.location.href = data.data.checkout_url;
         } else {
             throw new Error(data.message || 'Payment initialization failed');
@@ -151,6 +147,7 @@ document.querySelector('.container').appendChild(buyButton);
 // Add this function to check payment status
 async function checkPaymentStatus(tx_ref) {
     try {
+        console.log('Checking payment status for tx_ref:', tx_ref); // Debug log
         const response = await fetch(`/api/verify-payment?tx_ref=${tx_ref}`);
         const data = await response.json();
         
@@ -159,9 +156,13 @@ async function checkPaymentStatus(tx_ref) {
             const newBalance = userBalance + Number(data.amount);
             updateBalance(newBalance);
             alert('Deposit successful! Your balance has been updated.');
+        } else {
+            console.error('Payment verification failed:', data);
+            alert('Payment verification failed. Please try again.');
         }
     } catch (error) {
         console.error('Error checking payment:', error);
+        alert('Error checking payment status');
     }
 }
 
