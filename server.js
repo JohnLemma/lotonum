@@ -2,6 +2,7 @@ const express = require('express');
 const path = require('path');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
+const config = require('./config/config');
 const { CHAPA_SECRET_KEY, CHAPA_URL, CHAPA_HEADERS } = require('./config/chapa');
 const { 
     TELEBIRR_APP_ID, 
@@ -163,7 +164,7 @@ app.post('/api/telebirr/initialize', async (req, res) => {
         const fabricToken = tokenResponse.data.token;
         console.log('Fabric Token:', fabricToken);
 
-        // Create order
+        // Create order with signature
         const payload = {
             timestamp: tools.createTimeStamp(),
             nonce_str: tools.createNonceStr(),
@@ -181,6 +182,10 @@ app.post('/api/telebirr/initialize', async (req, res) => {
                 timeout_express: "30m",
             }
         };
+
+        // Add signature
+        payload.sign = tools.signRequestObject(payload);
+        payload.sign_type = "SHA256WithRSA";
 
         console.log('Payload:', payload);
 
