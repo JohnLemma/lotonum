@@ -14,6 +14,7 @@ const {
 } = require('./config/telebirr');
 const crypto = require('crypto');
 const tools = require('./utils/tools');
+const https = require('https');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -147,7 +148,7 @@ app.post('/api/telebirr/initialize', async (req, res) => {
         const timestamp = Date.now().toString();
         const outTradeNo = `TB-${timestamp}`;
 
-        // Get fabric token
+        // Get fabric token with timeout and SSL options
         const tokenResponse = await axios.post(
             `${config.baseUrl}/payment/v1/token`,
             {
@@ -157,7 +158,11 @@ app.post('/api/telebirr/initialize', async (req, res) => {
                 headers: {
                     'Content-Type': 'application/json',
                     'X-APP-Key': config.fabricAppId,
-                }
+                },
+                timeout: 10000, // 10 second timeout
+                httpsAgent: new https.Agent({  
+                    rejectUnauthorized: false // WARNING: Only for testing
+                })
             }
         );
 
