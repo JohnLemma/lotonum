@@ -3,6 +3,16 @@ const path = require('path');
 const axios = require('axios');
 const { v4: uuidv4 } = require('uuid');
 const { CHAPA_SECRET_KEY, CHAPA_URL, CHAPA_HEADERS } = require('./config/chapa');
+const { 
+    TELEBIRR_APP_ID, 
+    TELEBIRR_APP_KEY, 
+    TELEBIRR_SHORT_CODE,
+    TELEBIRR_PUBLIC_KEY,
+    TELEBIRR_URL,
+    TELEBIRR_BASE_URL
+} = require('./config/telebirr');
+const crypto = require('crypto');
+const tools = require('./utils/tools');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -104,6 +114,100 @@ app.get('/api/verify-payment', async (req, res) => {
             error: 'Payment verification failed',
             details: error.response?.data || error.message
         });
+    }
+});
+
+// Add TeleBirr fabric token endpoint
+app.post('/api/telebirr/token', async (req, res) => {
+    try {
+        const response = await axios.post(
+            `${TELEBIRR_BASE_URL}/payment/v1/token`,
+            {
+                appSecret: config.appSecret,
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-APP-Key': config.fabricAppId,
+                }
+            }
+        );
+        res.json(response.data);
+    } catch (error) {
+        console.error('Fabric token error:', error);
+        res.status(500).json({ error: 'Failed to get fabric token' });
+    }
+});
+
+// Add TeleBirr payment initialization endpoint
+app.post('/api/telebirr/initialize', async (req, res) => {
+    try {
+        const { amount } = req.body;
+        const nonce = uuidv4();
+        const timestamp = Date.now().toString();
+        const outTradeNo = `TB-${timestamp}-${nonce.substring(0, 8)}`;
+
+        // First get fabric token
+        const tokenResponse = await axios.post(`${req.protocol}://${req.get('host')}/api/telebirr/token`);
+        const fabricToken = tokenResponse.data.token;
+
+        const payload = {
+            timestamp: tools.createTimeStamp(),
+            nonce_str: tools.createNonceStr(),
+            method: "payment.preorder",
+            version: "1.0",
+            biz_content: {
+                notify_url: `${req.protocol}://${req.get('host')}/api/telebirr/notify`,
+                trade_type: "InApp",
+                appid: TELEBIRR_APP_ID,
+                merch_order_id: outTradeNo,
+                title: "Lottery Deposit",
+                total_amount: amount.toString(),
+                trans_currency: "ETB",
+                timeout_express: "30m",
+            }
+        };
+
+        const response = await axios.post(
+            `${TELEBIRR_BASE_URL}/payment/v1/merchant/preOrder`,
+            payload,
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-APP-Key': config.fabricAppId,
+                    'Authorization': fabricToken
+                }
+            }
+        );
+
+        res.json(response.data);
+    } catch (error) {
+        console.error('TeleBirr initialization error:', error);
+        res.status(500).json({ error: 'Failed to initialize TeleBirr payment' });
+    }
+});
+
+// Add TeleBirr notification endpoint
+app.post('/api/telebirr/notify', async (req, res) => {
+    try {
+        const notification = req.body;
+        console.log('TeleBirr notification received:', notification);
+
+        // Verify signature
+        // TODO: Implement signature verification
+
+        if (notification.trade_status === 'Completed') {
+            // Update user balance
+            // TODO: Implement balance update
+            
+            // Store transaction details
+            // TODO: Implement transaction storage
+        }
+
+        res.status(200).json({ message: 'Notification processed' });
+    } catch (error) {
+        console.error('TeleBirr notification error:', error);
+        res.status(500).json({ error: 'Failed to process notification' });
     }
 });
 

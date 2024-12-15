@@ -106,14 +106,59 @@ async function initializePayment(amount) {
     }
 }
 
-// Update deposit functionality
-async function handleDeposit() {
+// Add TeleBirr payment function
+async function initializeTeleBirrPayment(amount) {
     try {
-        await initializePayment(20);
+        const response = await fetch('/api/telebirr/initialize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount: Number(amount) })
+        });
+
+        const data = await response.json();
+        
+        if (data.result === 'SUCCESS') {
+            // Store transaction reference
+            localStorage.setItem('pending_telebirr_ref', data.biz_content.merch_order_id);
+            // Redirect to TeleBirr payment page
+            window.location.href = data.biz_content.toPayUrl;
+        } else {
+            throw new Error(data.msg || 'TeleBirr payment initialization failed');
+        }
     } catch (error) {
-        console.error('Deposit error:', error);
-        alert('Deposit failed: ' + (error.message || 'Unknown error'));
+        console.error('TeleBirr payment error:', error);
+        alert(error.message || 'TeleBirr payment initialization failed');
     }
+}
+
+// Update deposit button to show payment options
+function handleDeposit() {
+    const amount = 20; // Fixed deposit amount
+    
+    // Create payment selection dialog
+    const dialog = document.createElement('div');
+    dialog.className = 'payment-dialog';
+    dialog.innerHTML = `
+        <div class="payment-options">
+            <h3>Select Payment Method</h3>
+            <button id="telebirrBtn">Pay with TeleBirr</button>
+            <button id="cancelBtn">Cancel</button>
+        </div>
+    `;
+
+    document.body.appendChild(dialog);
+
+    // Add event listeners
+    dialog.querySelector('#telebirrBtn').addEventListener('click', () => {
+        dialog.remove();
+        initializeTeleBirrPayment(amount);
+    });
+
+    dialog.querySelector('#cancelBtn').addEventListener('click', () => {
+        dialog.remove();
+    });
 }
 
 // Update balance display
@@ -146,8 +191,7 @@ document.querySelector('.container').appendChild(buyButton);
 // Add this function to check payment status
 async function checkPaymentStatus(tx_ref) {
     try {
-        console.log('Checking payment status for tx_ref:', tx_ref); // Debug log
-        const response = await fetch(`/api/verify-payment?tx_ref=${tx_ref}`);
+        const response = await fetch(`/api/telebirr/verify?tx_ref=${tx_ref}`);
         const data = await response.json();
         
         if (data.status === 'success') {
@@ -167,9 +211,9 @@ async function checkPaymentStatus(tx_ref) {
 
 // Add this to check payment status when page loads
 window.addEventListener('load', () => {
-    const pendingTxRef = localStorage.getItem('pending_tx_ref');
+    const pendingTxRef = localStorage.getItem('pending_telebirr_ref');
     if (pendingTxRef) {
         checkPaymentStatus(pendingTxRef);
-        localStorage.removeItem('pending_tx_ref');
+        localStorage.removeItem('pending_telebirr_ref');
     }
 }); 
