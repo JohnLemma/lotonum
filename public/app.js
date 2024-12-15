@@ -108,56 +108,31 @@ async function initializePayment(amount) {
 
 // Add TeleBirr payment function
 async function initializeTeleBirrPayment(amount) {
-    try {
-        const response = await fetch('/api/telebirr/initialize', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ amount: Number(amount) })
-        });
+    const response = await fetch('/api/telebirr/initialize', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ amount: Number(amount) })
+    });
 
-        const data = await response.json();
-        
-        if (data.result === 'SUCCESS') {
-            // Store transaction reference
-            localStorage.setItem('pending_telebirr_ref', data.biz_content.merch_order_id);
-            // Redirect to TeleBirr payment page
-            window.location.href = data.biz_content.toPayUrl;
-        } else {
-            throw new Error(data.msg || 'TeleBirr payment initialization failed');
-        }
-    } catch (error) {
-        console.error('TeleBirr payment error:', error);
-        alert(error.message || 'TeleBirr payment initialization failed');
+    const data = await response.json();
+    console.log('TeleBirr Response:', data);
+
+    if (data.result === 'SUCCESS') {
+        window.location.href = data.biz_content.toPayUrl;
+    } else {
+        throw new Error(data.msg || 'Payment failed');
     }
 }
 
-// Update deposit button to show payment options
+// Update deposit button to trigger TeleBirr
 function handleDeposit() {
-    const amount = 20; // Fixed deposit amount
+    const amount = 20; // Fixed amount for testing
     
-    // Create payment selection dialog
-    const dialog = document.createElement('div');
-    dialog.className = 'payment-dialog';
-    dialog.innerHTML = `
-        <div class="payment-options">
-            <h3>Select Payment Method</h3>
-            <button id="telebirrBtn">Pay with TeleBirr</button>
-            <button id="cancelBtn">Cancel</button>
-        </div>
-    `;
-
-    document.body.appendChild(dialog);
-
-    // Add event listeners
-    dialog.querySelector('#telebirrBtn').addEventListener('click', () => {
-        dialog.remove();
-        initializeTeleBirrPayment(amount);
-    });
-
-    dialog.querySelector('#cancelBtn').addEventListener('click', () => {
-        dialog.remove();
+    initializeTeleBirrPayment(amount).catch(error => {
+        console.error('Deposit error:', error);
+        alert('Deposit failed: ' + error.message);
     });
 }
 
