@@ -128,8 +128,8 @@ async function initializeTeleBirrPayment(amount) {
 
 // Update deposit button to trigger TeleBirr
 function handleDeposit() {
-    const amount = 20; // Fixed amount for testing
-    
+    console.log('Deposit button clicked'); // Debug log
+    const amount = 20; 
     initializeTeleBirrPayment(amount).catch(error => {
         console.error('Deposit error:', error);
         alert('Deposit failed: ' + error.message);
@@ -162,7 +162,39 @@ buyButton.addEventListener('click', async () => {
 
 // Add button to container
 document.querySelector('.container').appendChild(buyButton); 
+    // Add TeleBirr payment function
+    async function initializeTeleBirrPayment(amount) {
+        console.log('Initializing TeleBirr payment for amount:', amount); // Debug log
+        
+        const response = await fetch('/api/telebirr/initialize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ amount: Number(amount) })
+        });
 
+        const data = await response.json();
+        console.log('TeleBirr Response:', data);
+
+        if (data.result === 'SUCCESS') {
+            console.log('Redirecting to:', data.biz_content.toPayUrl); // Debug log
+            window.location.href = data.biz_content.toPayUrl;
+        } else {
+            throw new Error(data.msg || 'Payment failed');
+        }
+    }
+
+    // Make sure the deposit button exists and has the event listener
+    document.addEventListener('DOMContentLoaded', () => {
+        const depositBtn = document.getElementById('depositBtn');
+        if (depositBtn) {
+            console.log('Deposit button found'); // Debug log
+            depositBtn.addEventListener('click', handleDeposit);
+        } else {
+            console.error('Deposit button not found!'); // Debug log
+        }
+    });
 // Add this function to check payment status
 async function checkPaymentStatus(tx_ref) {
     try {
@@ -191,4 +223,5 @@ window.addEventListener('load', () => {
         checkPaymentStatus(pendingTxRef);
         localStorage.removeItem('pending_telebirr_ref');
     }
+ 
 }); 
